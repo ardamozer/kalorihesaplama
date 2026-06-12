@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Besin Takibi – Kalori & Makro</title>
+  <meta name="description"
+    content="Günlük kalori ve makro besin takip uygulaması. Protein, karbonhidrat ve yağ hedeflerinizi kolayca takip edin." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <div class="app">
+
+    <!-- HEADER -->
+    <div class="header">
+      <div class="header-inner">
+        <h1>
+          <span class="icon-wrap"><i class="ti ti-salad" aria-hidden="true"></i></span>
+          Besin Takibi
+        </h1>
+      </div>
+      <div class="header-date" id="dateDisplay"></div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs-wrap">
+      <div class="tabs">
+        <button class="tab active" id="tab-btn-today" onclick="showTab('today')">
+          <i class="ti ti-home"></i> Bugün
+        </button>
+        <button class="tab" id="tab-btn-add" onclick="showTab('add')">
+          <i class="ti ti-plus"></i> Ekle
+        </button>
+        <button class="tab" id="tab-btn-profile" onclick="showTab('profile')">
+          <i class="ti ti-user"></i> Profil
+        </button>
+      </div>
+    </div>
+
+    <!-- ══ TODAY TAB ══ -->
+    <div id="tab-today" class="section">
+
+      <!-- No profile tip -->
+      <div id="no-profile-msg" style="display:none" class="tip">
+        <i class="ti ti-info-circle"></i>
+        <span>Kalori hedefini görmek için <b>Profil</b> sekmesinden bilgilerini gir.</span>
+      </div>
+
+      <!-- Calorie ring card -->
+      <div id="calori-block" class="calori-main" style="display:none">
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:0;height:0;position:absolute">
+          <defs>
+            <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#1d4ed8" />
+              <stop offset="50%" stop-color="#0891b2" />
+              <stop offset="100%" stop-color="#059669" />
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="ring-wrap">
+          <svg class="ring-svg" viewBox="0 0 80 80" width="80" height="80">
+            <circle class="ring-bg" cx="40" cy="40" r="35" />
+            <circle class="ring-fill" id="ringFill" cx="40" cy="40" r="35" />
+          </svg>
+          <div class="ring-center">
+            <div class="ring-pct" id="ringPct">0%</div>
+            <div class="ring-label">günlük</div>
+          </div>
+        </div>
+        <div class="calori-stats">
+          <div class="stat-row">
+            <div>
+              <div class="stat-big" id="consumed">0</div>
+              <div class="stat-unit">tüketilen kcal</div>
+            </div>
+            <div style="text-align:right">
+              <div class="stat-big" id="remaining" style="font-size:22px">0</div>
+              <div class="stat-unit">kalan kcal</div>
+            </div>
+          </div>
+          <div class="calori-divider"></div>
+          <div class="calori-row2">
+            <div class="cr2-item consumed">
+              <div class="cr2-val" id="targetKcal">—</div>
+              <div class="cr2-label">Hedef</div>
+            </div>
+            <div class="cr2-item" style="color:var(--blue)">
+              <div class="cr2-val" id="burnedDisp">0</div>
+              <div class="cr2-label">Yakılan</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Macro cards -->
+      <div id="macro-block" style="display:none" class="macro-grid">
+        <div class="macro-card">
+          <div class="mc-top">
+            <div class="mc-label">Protein</div>
+            <div class="mc-dot" style="background:var(--green)"></div>
+          </div>
+          <div class="mc-val"><span id="p-cur">0</span>g</div>
+          <div class="mc-goal">hedef: <span id="p-goal">—</span>g</div>
+          <div class="prog-bar">
+            <div class="prog-fill" id="p-bar" style="background:var(--green);width:0%"></div>
+          </div>
+        </div>
+        <div class="macro-card">
+          <div class="mc-top">
+            <div class="mc-label">Karbonhidrat</div>
+            <div class="mc-dot" style="background:var(--blue)"></div>
+          </div>
+          <div class="mc-val"><span id="k-cur">0</span>g</div>
+          <div class="mc-goal">hedef: <span id="k-goal">—</span>g</div>
+          <div class="prog-bar">
+            <div class="prog-fill" id="k-bar" style="background:var(--blue);width:0%"></div>
+          </div>
+        </div>
+        <div class="macro-card">
+          <div class="mc-top">
+            <div class="mc-label">Yağ</div>
+            <div class="mc-dot" style="background:var(--orange)"></div>
+          </div>
+          <div class="mc-val"><span id="y-cur">0</span>g</div>
+          <div class="mc-goal">hedef: <span id="y-goal">—</span>g</div>
+          <div class="prog-bar">
+            <div class="prog-fill" id="y-bar" style="background:var(--orange);width:0%"></div>
+          </div>
+        </div>
+        <div class="macro-card">
+          <div class="mc-top">
+            <div class="mc-label">Lif</div>
+            <div class="mc-dot" style="background:var(--pink)"></div>
+          </div>
+          <div class="mc-val"><span id="l-cur">0</span>g</div>
+          <div class="mc-goal">hedef: 25g</div>
+          <div class="prog-bar">
+            <div class="prog-fill" id="l-bar" style="background:var(--pink);width:0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Motivation banner -->
+      <div class="motivation-banner" id="motivationBanner">
+        <div class="mb-top">
+          <span class="mb-icon" id="motivationIcon"></span>
+          <span class="mb-title" id="motivationTitle"></span>
+        </div>
+        <div class="mb-msg" id="motivationMsg"></div>
+      </div>
+
+      <!-- Today food list -->
+      <div class="section-label">Bugün yediklerim</div>
+      <div class="food-list" id="todayList"></div>
+    </div>
+
+    <!-- ══ ADD TAB ══ -->
+    <div id="tab-add" class="section" style="display:none">
+      <div class="tip">
+        <i class="ti ti-bulb"></i>
+        <span>Besin ara veya elle gir. Gram miktarını ayarla.</span>
+      </div>
+
+      <div class="form-grid">
+        <!-- Search -->
+        <div class="form-group">
+          <div class="form-label">Besin ara</div>
+          <input type="text" id="foodSearch" placeholder="örn. yumurta, ekmek..." oninput="searchFood(this.value)"
+            autocomplete="off">
+          <div class="search-results" id="searchResults"></div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <div class="form-label">Miktar (g/ml)</div>
+            <input type="number" id="foodAmount" placeholder="100" value="100" min="1">
+          </div>
+          <div class="form-group">
+            <div class="form-label">Öğün</div>
+            <select id="mealType">
+              <option>Kahvaltı</option>
+              <option>Öğle</option>
+              <option>Akşam</option>
+              <option>Ara öğün</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="divider-label">Ya da elle gir</div>
+
+        <div class="form-group">
+          <div class="form-label">Besin adı</div>
+          <input type="text" id="customName" placeholder="Besin adı">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <div class="form-label">Kalori (kcal)</div>
+            <input type="number" id="customKcal" placeholder="0" min="0">
+          </div>
+          <div class="form-group">
+            <div class="form-label">Protein (g)</div>
+            <input type="number" id="customProt" placeholder="0" min="0">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <div class="form-label">Karbonhidrat (g)</div>
+            <input type="number" id="customKarb" placeholder="0" min="0">
+          </div>
+          <div class="form-group">
+            <div class="form-label">Yağ (g)</div>
+            <input type="number" id="customYag" placeholder="0" min="0">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="form-label">Lif (g)</div>
+          <input type="number" id="customLif" placeholder="0" min="0">
+        </div>
+      </div>
+
+      <button class="add-btn" onclick="addFood()">
+        <i class="ti ti-plus" aria-hidden="true"></i> Besin Ekle
+      </button>
+      <div id="addMsg"></div>
+    </div>
+
+    <!-- ══ PROFILE TAB ══ -->
+    <div id="tab-profile" class="section" style="display:none">
+      <div class="profile-section">
+
+        <div class="section-header"><i class="ti ti-user-circle"></i> Fiziksel Bilgiler</div>
+
+        <div class="profile-row">
+          <div class="form-group">
+            <div class="form-label">Boy (cm)</div>
+            <input type="number" id="height" placeholder="175" min="100" max="250">
+          </div>
+          <div class="form-group">
+            <div class="form-label">Kilo (kg)</div>
+            <input type="number" id="weight" placeholder="70" min="30" max="300">
+          </div>
+        </div>
+
+        <div class="profile-row">
+          <div class="form-group">
+            <div class="form-label">Yaş</div>
+            <input type="number" id="age" placeholder="25" min="10" max="100">
+          </div>
+          <div class="form-group">
+            <div class="form-label">Cinsiyet</div>
+            <select id="gender">
+              <option value="male">Erkek</option>
+              <option value="female">Kadın</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="form-label">Aktivite seviyesi</div>
+          <select id="activity">
+            <option value="1.2">Hareketsiz (masa başı)</option>
+            <option value="1.375">Hafif aktif (haftada 1-3 gün)</option>
+            <option value="1.55" selected>Orta aktif (haftada 3-5 gün)</option>
+            <option value="1.725">Çok aktif (haftada 6-7 gün)</option>
+            <option value="1.9">Aşırı aktif (sporcu)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <div class="form-label">Hedef</div>
+          <div class="radio-group">
+            <div class="radio-btn" id="goal-lose" onclick="selectGoal('lose')">⬇ Kilo ver</div>
+            <div class="radio-btn selected" id="goal-maintain" onclick="selectGoal('maintain')">⚖ Koru</div>
+            <div class="radio-btn" id="goal-gain" onclick="selectGoal('gain')">⬆ Kilo al</div>
+          </div>
+        </div>
+
+        <button class="save-profile-btn" onclick="saveProfile()">
+          <i class="ti ti-device-floppy"></i> Hesapla ve Kaydet
+        </button>
+        <div id="profileResult"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
