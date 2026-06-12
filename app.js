@@ -776,8 +776,7 @@ class App {
     this.renderSearchResults(localResults, [], true);
 
     try {
-      const targetUrl = `https://tr.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1`;
-      const response = await fetch(`https://corsproxy.io/?` + encodeURIComponent(targetUrl));
+      const response = await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&lc=tr`);
 
       if (!response.ok) throw new Error('API response not OK');
 
