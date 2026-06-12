@@ -776,11 +776,13 @@ class App {
     this.renderSearchResults(localResults, [], true);
 
     try {
-      const response = await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&lc=tr`);
+      const targetUrl = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&lc=tr`;
+      const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`);
 
       if (!response.ok) throw new Error('API response not OK');
 
-      const data = await response.json();
+      const wrapper = await response.json();
+      const data = typeof wrapper.contents === 'string' ? JSON.parse(wrapper.contents) : wrapper.contents;
       const products = data.products || [];
 
       this.#onlineProducts = products
