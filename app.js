@@ -765,7 +765,7 @@ class App {
 
     this.#searchTimeout = setTimeout(() => {
       this.searchOnline(q, localResults);
-    }, 500);
+    }, 300);
   }
 
   async searchOnline(q, localResults) {
@@ -776,49 +776,37 @@ class App {
     this.renderSearchResults(localResults, [], true);
 
     const targetUrl = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&lc=tr`;
-
+    
     let products = [];
     let success = false;
 
-    // Try 1: Direct Fetch
-    try {
+    const fetchDirect = async () => {
       const response = await fetch(targetUrl);
-      if (response.ok) {
-        const data = await response.json();
-        products = data.products || [];
-        success = true;
-      }
+      if (!response.ok) throw new Error('Direct failed');
+      const data = await response.json();
+      return data.products || [];
+    };
+
+    const fetchProxy1 = async () => {
+      const response = await fetch(`https://corsproxy.io/?` + encodeURIComponent(targetUrl));
+      if (!response.ok) throw new Error('Proxy 1 failed');
+      const data = await response.json();
+      return data.products || [];
+    };
+
+    const fetchProxy2 = async () => {
+      const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`);
+      if (!response.ok) throw new Error('Proxy 2 failed');
+      const wrapper = await response.json();
+      const data = typeof wrapper.contents === 'string' ? JSON.parse(wrapper.contents) : wrapper.contents;
+      return data.products || [];
+    };
+
+    try {
+      products = await Promise.any([fetchDirect(), fetchProxy1(), fetchProxy2()]);
+      success = true;
     } catch (e) {
-      console.warn('Direct fetch failed, trying proxy 1...', e);
-    }
-
-    // Try 2: CorsProxy.io
-    if (!success) {
-      try {
-        const response = await fetch(`https://corsproxy.io/?` + encodeURIComponent(targetUrl));
-        if (response.ok) {
-          const data = await response.json();
-          products = data.products || [];
-          success = true;
-        }
-      } catch (e) {
-        console.warn('Proxy 1 failed, trying proxy 2...', e);
-      }
-    }
-
-    // Try 3: AllOrigins
-    if (!success) {
-      try {
-        const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`);
-        if (response.ok) {
-          const wrapper = await response.json();
-          const data = typeof wrapper.contents === 'string' ? JSON.parse(wrapper.contents) : wrapper.contents;
-          products = data.products || [];
-          success = true;
-        }
-      } catch (e) {
-        console.error('All proxies failed:', e);
-      }
+      console.error('All methods failed:', e);
     }
 
     if (success) {
