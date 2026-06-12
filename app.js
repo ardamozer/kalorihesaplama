@@ -776,7 +776,7 @@ class App {
     this.renderSearchResults(localResults, [], true);
 
     const targetUrl = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&lc=tr`;
-    
+
     let products = [];
     let success = false;
 
