@@ -649,6 +649,8 @@ class App {
   #ui;
   #profileManager;
   #selectedFood = null;
+  #searchTimeout = null;
+  #onlineProducts = [];
 
   constructor() {
     if (App.#instance) {
@@ -745,20 +747,139 @@ class App {
 
   searchFood(q) {
     const box = document.getElementById('searchResults');
-    const results = this.#foodDatabase.search(q);
-    if (!results.length) {
+    
+    if (this.#searchTimeout) {
+      clearTimeout(this.#searchTimeout);
+    }
+    
+    if (!q || q.length < 2) {
+      box.style.display = 'none';
+      this.#onlineProducts = [];
+      return;
+    }
+    
+    const localResults = this.#foodDatabase.search(q);
+    this.#onlineProducts = [];
+    
+    this.renderSearchResults(localResults, [], false);
+    
+    this.#searchTimeout = setTimeout(() => {
+      this.searchOnline(q, localResults);
+    }, 500);
+  }
+
+  async searchOnline(q, localResults) {
+    const box = document.getElementById('searchResults');
+    if (box.style.display === 'none' && !localResults.length) {
+      box.style.display = 'block';
+    }
+    
+    this.renderSearchResults(localResults, [], true);
+    
+    try {
+      const response = await fetch(`https://tr.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1`);
+      
+      if (!response.ok) throw new Error('API response not OK');
+      
+      const data = await response.json();
+      const products = data.products || [];
+      
+      this.#onlineProducts = products
+        .filter(p => p.product_name || p.product_name_tr)
+        .slice(0, 7)
+        .map(p => {
+          const name = p.product_name_tr || p.product_name || p.generic_name || 'Bilinmeyen Besin';
+          const brand = p.brands ? ` (${p.brands})` : '';
+          const nut = p.nutriments || {};
+          
+          let kcal = 0;
+          if (nut['energy-kcal_100g'] !== undefined) {
+            kcal = parseFloat(nut['energy-kcal_100g']);
+          } else if (nut['energy-kcal'] !== undefined) {
+            kcal = parseFloat(nut['energy-kcal']);
+          } else if (nut['energy_100g'] !== undefined) {
+            kcal = parseFloat(nut['energy_100g']) / 4.184;
+          }
+          
+          const prot = parseFloat(nut.proteins_100g || nut.proteins || 0);
+          const karb = parseFloat(nut.carbohydrates_100g || nut.carbohydrates || 0);
+          const yag = parseFloat(nut.fat_100g || nut.fat || 0);
+          const lif = parseFloat(nut.fiber_100g || nut.fiber || 0);
+          
+          return {
+            name: name + brand,
+            kcal: Math.round(kcal),
+            prot: Math.round(prot * 10) / 10,
+            karb: Math.round(karb * 10) / 10,
+            yag: Math.round(yag * 10) / 10,
+            lif: Math.round(lif * 10) / 10,
+            online: true
+          };
+        });
+      
+      this.renderSearchResults(localResults, this.#onlineProducts, false);
+    } catch (err) {
+      console.error('Online search failed:', err);
+      this.renderSearchResults(localResults, [], false, true);
+    }
+  }
+
+  renderSearchResults(localResults, onlineResults, isLoading, isError = false) {
+    const box = document.getElementById('searchResults');
+    
+    if (!localResults.length && !onlineResults.length && !isLoading && !isError) {
       box.style.display = 'none';
       return;
     }
+    
     box.style.display = 'block';
-    box.innerHTML = results.map(f => {
-      const idx = this.#foodDatabase.indexOf(f);
-      return `
-        <div class="search-item${f.unhealthy ? ' unhealthy' : ''}" onclick="selectSearchFood(${idx})">
-          <div class="s-name">${f.name}${f.unhealthy ? '<span class="s-unhealthy-tag">⚠ Dikkat</span>' : ''}</div>
-          <div class="s-macro">${f.kcal} kcal/100g &nbsp;·&nbsp; P:${f.prot}g &nbsp;K:${f.karb}g &nbsp;Y:${f.yag}g</div>
+    
+    let html = '';
+    
+    if (localResults.length > 0) {
+      if (onlineResults.length > 0 || isLoading || isError) {
+        html += `<div class="search-results-section">Kendi Yemeklerin</div>`;
+      }
+      html += localResults.map(f => {
+        const idx = this.#foodDatabase.indexOf(f);
+        return `
+          <div class="search-item${f.unhealthy ? ' unhealthy' : ''}" onclick="selectSearchFood(${idx})">
+            <div class="s-name">${f.name}${f.unhealthy ? '<span class="s-unhealthy-tag">⚠ Dikkat</span>' : ''}</div>
+            <div class="s-macro">${f.kcal} kcal/100g &nbsp;·&nbsp; P:${f.prot}g &nbsp;K:${f.karb}g &nbsp;Y:${f.yag}g</div>
+          </div>`;
+      }).join('');
+    }
+    
+    if (onlineResults.length > 0) {
+      html += `<div class="search-results-section">İnternet Sonuçları (Open Food Facts)</div>`;
+      html += onlineResults.map((f, idx) => {
+        return `
+          <div class="search-item online" onclick="selectOnlineFood(${idx})">
+            <div class="s-name">
+              <span>${f.name}</span>
+              <span class="s-online-tag">🌐 İnternet</span>
+            </div>
+            <div class="s-macro">${f.kcal} kcal/100g &nbsp;·&nbsp; P:${f.prot}g &nbsp;K:${f.karb}g &nbsp;Y:${f.yag}g &nbsp;L:${f.lif}g</div>
+          </div>`;
+      }).join('');
+    }
+    
+    if (isLoading) {
+      html += `
+        <div class="search-loading">
+          <div class="spinner"></div>
+          <span>İnternette aranıyor...</span>
         </div>`;
-    }).join('');
+    }
+    
+    if (isError && !onlineResults.length) {
+      html += `
+        <div class="search-loading" style="color: var(--red)">
+          <span>⚠ İnternet araması başarısız oldu.</span>
+        </div>`;
+    }
+    
+    box.innerHTML = html;
   }
 
   selectSearchFood(idx) {
@@ -772,6 +893,19 @@ class App {
     document.getElementById('customYag').value = this.#selectedFood.yag;
     document.getElementById('customLif').value = this.#selectedFood.lif;
   }
+
+  selectOnlineFood(idx) {
+    this.#selectedFood = this.#onlineProducts[idx];
+    document.getElementById('foodSearch').value = this.#selectedFood.name;
+    document.getElementById('searchResults').style.display = 'none';
+    document.getElementById('customName').value = this.#selectedFood.name;
+    document.getElementById('customKcal').value = this.#selectedFood.kcal;
+    document.getElementById('customProt').value = this.#selectedFood.prot;
+    document.getElementById('customKarb').value = this.#selectedFood.karb;
+    document.getElementById('customYag').value = this.#selectedFood.yag;
+    document.getElementById('customLif').value = this.#selectedFood.lif;
+  }
+
 
   addFood() {
     const name = document.getElementById('customName').value.trim();
@@ -847,6 +981,8 @@ function cancelEdit(idx) { app.cancelEdit(idx); }
 function saveEdit(idx) { app.saveEdit(idx); }
 function searchFood(q) { app.searchFood(q); }
 function selectSearchFood(idx) { app.selectSearchFood(idx); }
+function selectOnlineFood(idx) { app.selectOnlineFood(idx); }
 function addFood() { app.addFood(); }
 function selectGoal(g) { app.selectGoal(g); }
 function saveProfile() { app.saveProfile(); }
+
