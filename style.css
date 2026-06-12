@@ -1016,3 +1016,61 @@ select option {
   line-height: 1.5;
   color: var(--text2);
 }
+
+/* ── ONLINE SEARCH STYLES ── */
+.search-results-section {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  padding: 8px 14px 4px;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.search-item.online {
+  border-left: 3px solid var(--blue);
+}
+
+.search-item.online .s-name {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.s-online-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 99px;
+  font-weight: 600;
+  background: rgba(14, 165, 233, 0.12);
+  color: var(--blue);
+  border: 1px solid rgba(14, 165, 233, 0.2);
+}
+
+/* Loading status inside search results */
+.search-loading {
+  padding: 12px 14px;
+  font-size: 12px;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
