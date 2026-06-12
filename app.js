@@ -747,22 +747,22 @@ class App {
 
   searchFood(q) {
     const box = document.getElementById('searchResults');
-    
+
     if (this.#searchTimeout) {
       clearTimeout(this.#searchTimeout);
     }
-    
+
     if (!q || q.length < 2) {
       box.style.display = 'none';
       this.#onlineProducts = [];
       return;
     }
-    
+
     const localResults = this.#foodDatabase.search(q);
     this.#onlineProducts = [];
-    
+
     this.renderSearchResults(localResults, [], false);
-    
+
     this.#searchTimeout = setTimeout(() => {
       this.searchOnline(q, localResults);
     }, 500);
@@ -773,17 +773,17 @@ class App {
     if (box.style.display === 'none' && !localResults.length) {
       box.style.display = 'block';
     }
-    
     this.renderSearchResults(localResults, [], true);
-    
+
     try {
-      const response = await fetch(`https://tr.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1`);
-      
+      const targetUrl = `https://tr.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1`;
+      const response = await fetch(`https://corsproxy.io/?` + encodeURIComponent(targetUrl));
+
       if (!response.ok) throw new Error('API response not OK');
-      
+
       const data = await response.json();
       const products = data.products || [];
-      
+
       this.#onlineProducts = products
         .filter(p => p.product_name || p.product_name_tr)
         .slice(0, 7)
@@ -791,7 +791,7 @@ class App {
           const name = p.product_name_tr || p.product_name || p.generic_name || 'Bilinmeyen Besin';
           const brand = p.brands ? ` (${p.brands})` : '';
           const nut = p.nutriments || {};
-          
+
           let kcal = 0;
           if (nut['energy-kcal_100g'] !== undefined) {
             kcal = parseFloat(nut['energy-kcal_100g']);
@@ -800,12 +800,12 @@ class App {
           } else if (nut['energy_100g'] !== undefined) {
             kcal = parseFloat(nut['energy_100g']) / 4.184;
           }
-          
+
           const prot = parseFloat(nut.proteins_100g || nut.proteins || 0);
           const karb = parseFloat(nut.carbohydrates_100g || nut.carbohydrates || 0);
           const yag = parseFloat(nut.fat_100g || nut.fat || 0);
           const lif = parseFloat(nut.fiber_100g || nut.fiber || 0);
-          
+
           return {
             name: name + brand,
             kcal: Math.round(kcal),
@@ -816,7 +816,7 @@ class App {
             online: true
           };
         });
-      
+
       this.renderSearchResults(localResults, this.#onlineProducts, false);
     } catch (err) {
       console.error('Online search failed:', err);
@@ -826,16 +826,16 @@ class App {
 
   renderSearchResults(localResults, onlineResults, isLoading, isError = false) {
     const box = document.getElementById('searchResults');
-    
+
     if (!localResults.length && !onlineResults.length && !isLoading && !isError) {
       box.style.display = 'none';
       return;
     }
-    
+
     box.style.display = 'block';
-    
+
     let html = '';
-    
+
     if (localResults.length > 0) {
       if (onlineResults.length > 0 || isLoading || isError) {
         html += `<div class="search-results-section">Kendi Yemeklerin</div>`;
@@ -849,7 +849,7 @@ class App {
           </div>`;
       }).join('');
     }
-    
+
     if (onlineResults.length > 0) {
       html += `<div class="search-results-section">İnternet Sonuçları (Open Food Facts)</div>`;
       html += onlineResults.map((f, idx) => {
@@ -863,7 +863,7 @@ class App {
           </div>`;
       }).join('');
     }
-    
+
     if (isLoading) {
       html += `
         <div class="search-loading">
@@ -871,14 +871,14 @@ class App {
           <span>İnternette aranıyor...</span>
         </div>`;
     }
-    
+
     if (isError && !onlineResults.length) {
       html += `
         <div class="search-loading" style="color: var(--red)">
           <span>⚠ İnternet araması başarısız oldu.</span>
         </div>`;
     }
-    
+
     box.innerHTML = html;
   }
 
