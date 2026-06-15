@@ -12,8 +12,8 @@
   --accent2: #38bdf8;
   --green: #10b981;
   --blue: #0ea5e9;
-  --orange: #14b8a6;
-  --pink: #22d3ee;
+  --orange: #f97316;   /* düzeltildi: gerçek turuncu (yağ makrosu için) */
+  --pink: #d946ef;     /* düzeltildi: gerçek pembe/mor (lif makrosu için) */
   --red: #f87171;
   --grad: linear-gradient(135deg, #1d4ed8 0%, #0891b2 50%, #059669 100%);
   --grad2: linear-gradient(135deg, #101e2d 0%, #0b1520 100%);
@@ -39,7 +39,6 @@ body {
   overflow-x: hidden;
 }
 
-/* Ambient background blobs */
 body::before {
   content: '';
   position: fixed;
@@ -134,8 +133,8 @@ body::after {
 
 .tab {
   flex: 1;
-  padding: 9px 6px;
-  font-size: 13px;
+  padding: 9px 4px;
+  font-size: 12px;
   font-weight: 500;
   text-align: center;
   cursor: pointer;
@@ -446,15 +445,8 @@ body::after {
 }
 
 @keyframes fadeSlide {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0);   }
 }
 
 .food-item .fi-name {
@@ -726,18 +718,13 @@ select option {
   margin-top: 2px;
 }
 
-.search-results::-webkit-scrollbar {
-  width: 4px;
-}
-
-.search-results::-webkit-scrollbar-track {
-  background: transparent;
-}
-
+.search-results::-webkit-scrollbar { width: 4px; }
+.search-results::-webkit-scrollbar-track { background: transparent; }
 .search-results::-webkit-scrollbar-thumb {
   background: var(--glass-border);
   border-radius: 99px;
 }
+.search-results::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
 /* ── RADIO GOAL BUTTONS ── */
 .radio-group {
@@ -763,6 +750,11 @@ select option {
 .radio-btn:hover:not(.selected) {
   background: var(--glass-hover);
   color: var(--text);
+}
+
+.radio-btn:focus-visible {
+  outline: 2px solid var(--accent2);
+  outline-offset: 2px;
 }
 
 .radio-btn.selected {
@@ -812,15 +804,8 @@ select option {
   font-weight: 600;
 }
 
-.badge-green {
-  background: rgba(52, 211, 153, 0.12);
-  color: var(--green);
-}
-
-.badge-red {
-  background: rgba(248, 113, 113, 0.12);
-  color: var(--red);
-}
+.badge-green { background: rgba(52, 211, 153, 0.12); color: var(--green); }
+.badge-red   { background: rgba(248, 113, 113, 0.12); color: var(--red); }
 
 /* ── SECTION HEADER ── */
 .section-header {
@@ -833,21 +818,7 @@ select option {
   gap: 8px;
 }
 
-.section-header i {
-  color: var(--accent2);
-}
-
-/* ── BOTTOM NAV (mobile feel) ── */
-@media (max-width: 440px) {
-  .app {
-    padding-bottom: 5rem;
-  }
-}
-
-/* ── SCROLL GLOW ── */
-.search-results::-webkit-scrollbar-thumb:hover {
-  background: var(--accent);
-}
+.section-header i { color: var(--accent2); }
 
 /* ── UNHEALTHY FOOD STYLES ── */
 .food-item.unhealthy {
@@ -930,9 +901,7 @@ select option {
   transition: opacity 0.15s;
 }
 
-.fi-save-btn:hover {
-  opacity: 0.85;
-}
+.fi-save-btn:hover { opacity: 0.85; }
 
 .fi-cancel-btn {
   padding: 4px 8px;
@@ -946,6 +915,7 @@ select option {
   font-family: 'Inter', sans-serif;
 }
 
+/* ── SEARCH ITEM VARIANTS ── */
 .search-item.unhealthy {
   border-left: 3px solid rgba(248, 113, 113, 0.5);
 }
@@ -983,8 +953,8 @@ select option {
 }
 
 .motivation-banner.caution {
-  background: rgba(251, 146, 60, 0.08);
-  border-color: rgba(251, 146, 60, 0.25);
+  background: rgba(249, 115, 22, 0.08);
+  border-color: rgba(249, 115, 22, 0.25);
 }
 
 .motivation-banner .mb-top {
@@ -994,22 +964,15 @@ select option {
   margin-bottom: 6px;
 }
 
-.motivation-banner .mb-icon {
-  font-size: 20px;
-}
+.motivation-banner .mb-icon { font-size: 20px; }
 
 .motivation-banner .mb-title {
   font-size: 13px;
   font-weight: 700;
 }
 
-.motivation-banner.warn .mb-title {
-  color: var(--red);
-}
-
-.motivation-banner.caution .mb-title {
-  color: var(--orange);
-}
+.motivation-banner.warn .mb-title    { color: var(--red);    }
+.motivation-banner.caution .mb-title { color: var(--orange); }
 
 .motivation-banner .mb-msg {
   font-size: 12px;
@@ -1052,7 +1015,6 @@ select option {
   border: 1px solid rgba(14, 165, 233, 0.2);
 }
 
-/* Loading status inside search results */
 .search-loading {
   padding: 12px 14px;
   font-size: 12px;
@@ -1071,6 +1033,79 @@ select option {
   animation: spin 0.8s linear infinite;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── HISTORY TAB ── */
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.history-item {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  animation: fadeSlide 0.3s ease both;
+  transition: background 0.18s;
+}
+
+.history-item:hover {
+  background: var(--glass-hover);
+}
+
+.history-item.over-target {
+  border-color: rgba(248, 113, 113, 0.25);
+}
+
+.history-item.under-target {
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.hi-left {}
+
+.hi-date {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.hi-macros {
+  font-size: 11px;
+  color: var(--text2);
+}
+
+.hi-right {
+  text-align: right;
+}
+
+.hi-kcal {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.hi-kcal.over  { color: var(--red);   }
+.hi-kcal.under { color: var(--green); }
+
+.hi-unit {
+  font-size: 10px;
+  color: var(--text3);
+  text-transform: uppercase;
+}
+
+.hi-count {
+  font-size: 10px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 440px) {
+  .app { padding-bottom: 5rem; }
 }

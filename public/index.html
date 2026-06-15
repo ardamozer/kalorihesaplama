@@ -38,6 +38,9 @@
         <button class="tab" id="tab-btn-add" onclick="showTab('add')">
           <i class="ti ti-plus"></i> Ekle
         </button>
+        <button class="tab" id="tab-btn-history" onclick="showTab('history')">
+          <i class="ti ti-calendar"></i> Tarih
+        </button>
         <button class="tab" id="tab-btn-profile" onclick="showTab('profile')">
           <i class="ti ti-user"></i> Profil
         </button>
@@ -47,7 +50,6 @@
     <!-- ══ TODAY TAB ══ -->
     <div id="tab-today" class="section">
 
-      <!-- No profile tip -->
       <div id="no-profile-msg" style="display:none" class="tip">
         <i class="ti ti-info-circle"></i>
         <span>Kalori hedefini görmek için <b>Profil</b> sekmesinden bilgilerini gir.</span>
@@ -140,7 +142,7 @@
             <div class="mc-dot" style="background:var(--pink)"></div>
           </div>
           <div class="mc-val"><span id="l-cur">0</span>g</div>
-          <div class="mc-goal">hedef: 25g</div>
+          <div class="mc-goal">hedef: <span id="l-goal">—</span>g</div>
           <div class="prog-bar">
             <div class="prog-fill" id="l-bar" style="background:var(--pink);width:0%"></div>
           </div>
@@ -169,7 +171,6 @@
       </div>
 
       <div class="form-grid">
-        <!-- Search -->
         <div class="form-group">
           <div class="form-label">Besin ara</div>
           <input type="text" id="foodSearch" placeholder="örn. yumurta, ekmek..." oninput="searchFood(this.value)"
@@ -234,6 +235,15 @@
       <div id="addMsg"></div>
     </div>
 
+    <!-- ══ HISTORY TAB ══ -->
+    <div id="tab-history" class="section" style="display:none">
+      <div class="tip">
+        <i class="ti ti-calendar-stats"></i>
+        <span>Son 30 gündeki kalori ve makro özetin.</span>
+      </div>
+      <div id="historyList"></div>
+    </div>
+
     <!-- ══ PROFILE TAB ══ -->
     <div id="tab-profile" class="section" style="display:none">
       <div class="profile-section">
@@ -277,11 +287,25 @@
         </div>
 
         <div class="form-group">
+          <div class="form-label">Günlük Lif Hedefi (g)</div>
+          <input type="number" id="fiberGoal" placeholder="25" value="25" min="5" max="100">
+        </div>
+
+        <div class="form-group">
           <div class="form-label">Hedef</div>
-          <div class="radio-group">
-            <div class="radio-btn" id="goal-lose" onclick="selectGoal('lose')">⬇ Kilo ver</div>
-            <div class="radio-btn selected" id="goal-maintain" onclick="selectGoal('maintain')">⚖ Koru</div>
-            <div class="radio-btn" id="goal-gain" onclick="selectGoal('gain')">⬆ Kilo al</div>
+          <div class="radio-group" role="radiogroup" aria-label="Kilo hedefi">
+            <div class="radio-btn" id="goal-lose" role="radio" aria-checked="false" tabindex="0"
+              onclick="selectGoal('lose')" onkeydown="if(event.key==='Enter'||event.key===' ')selectGoal('lose')">
+              ⬇ Kilo ver
+            </div>
+            <div class="radio-btn selected" id="goal-maintain" role="radio" aria-checked="true" tabindex="0"
+              onclick="selectGoal('maintain')" onkeydown="if(event.key==='Enter'||event.key===' ')selectGoal('maintain')">
+              ⚖ Koru
+            </div>
+            <div class="radio-btn" id="goal-gain" role="radio" aria-checked="false" tabindex="0"
+              onclick="selectGoal('gain')" onkeydown="if(event.key==='Enter'||event.key===' ')selectGoal('gain')">
+              ⬆ Kilo al
+            </div>
           </div>
         </div>
 
